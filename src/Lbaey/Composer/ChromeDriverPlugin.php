@@ -119,10 +119,9 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
             }
         }
         if ($extra) {
-            var_dump($extra);
             $version = $extra['chromedriver_version'];
         } else {
-            $version = '2.28';
+            $version = '2.27';
         }
         $this->io->write(sprintf(
             "Downloading Chromedriver version %s for %s",
@@ -131,7 +130,6 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         ));
         $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
         $chromeDriverRemoteFile = $version . "/chromedriver_" . $chromeDriverFileVersion . ".zip";
-        $event->getIO()->write($chromeDriverOriginUrl . $chromeDriverRemoteFile);
 
         /** @var RemoteFilesystem $remoteFileSystem */
         $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $config);

@@ -11,19 +11,19 @@ use Composer\Util\RemoteFilesystem;
 
 class ChromeDriverInstall
 {
-    public static function postPackageInstall(Event $event)
+    public static function postInstall(Event $event)
     {
         if (stripos(PHP_OS, 'win') === 0) {
             $platform = 'Windows';
+            $chromeDriverExecutableFileName = 'chromedriver.exe';
             $chromeDriverFileVersion = "win32";
-            $chromeDriverExecutableFile = 'chromedriver.exe';
         } elseif (stripos(PHP_OS, 'darwin') === 0) {
             $platform = 'Mac OS X';
+            $chromeDriverExecutableFileName = 'chromedriver';
             $chromeDriverFileVersion = "mac64";
-            $chromeDriverExecutableFile = 'chromedriver';
         } elseif (stripos(PHP_OS, 'linux') === 0) {
             $platform = 'Linux';
-            $chromeDriverExecutableFile = 'chromedriver';
+            $chromeDriverExecutableFileName = 'chromedriver';
             if (PHP_INT_SIZE === 8) {
                 $chromeDriverFileVersion = "linux64";
             } else {
@@ -56,14 +56,17 @@ class ChromeDriverInstall
         $fs = new Filesystem();
         $fs->ensureDirectoryExists($config->get('bin-dir'));
 
-        $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $chromeDriverRemoteFile, $config->get('bin-dir') . DIRECTORY_SEPARATOR . 'chromedriver_' . $chromeDriverFileVersion . ".zip");
+        $chromeDriverArchiveFileName = $config->get('bin-dir') . DIRECTORY_SEPARATOR . 'chromedriver_' . $chromeDriverFileVersion . ".zip";
+        $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $chromeDriverRemoteFile, $chromeDriverArchiveFileName);
 
         $archive = new \ZipArchive();
-        $archive->open($config->get('bin-dir') . DIRECTORY_SEPARATOR . 'chromedriver_' . $chromeDriverFileVersion . ".zip");
+        $archive->open($chromeDriverArchiveFileName);
         $archive->extractTo($config->get('bin-dir'));
 
         if ($platform !== 'Windows') {
-            chmod($config->get('bin-dir') . DIRECTORY_SEPARATOR . $chromeDriverExecutableFile, '0755');
+            chmod($config->get('bin-dir') . DIRECTORY_SEPARATOR . $chromeDriverExecutableFileName, 0755);
         }
+
+        $fs->unlink($chromeDriverArchiveFileName);
     }
 }

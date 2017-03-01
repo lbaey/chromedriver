@@ -24,6 +24,11 @@
   "minimum-stability": "dev",
   "require": {},
   "scripts": {
-    "post-package-install": "Lbaey\\ChromeDriverInstall::postPackageInstall"
+    "post-install-cmd": [
+      "Lbaey\\ChromeDriverInstall::postInstall"
+    ],
+    "post-update-cmd": [
+      "Lbaey\\ChromeDriverInstall::postInstall"
+    ]
   }
 }

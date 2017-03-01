@@ -1,0 +1,29 @@
+{
+  "name": "lbaey/chromedriver",
+  "description": "Utility for installing Chromedriver, whatever platform you are on, for use with Behat",
+  "keywords": [
+    "Chromedriver",
+    "Browser Testing",
+    "Selenium",
+    "Behat"
+  ],
+  "version": "2.27",
+  "homepage": "https://github.com/lbaey",
+  "license": "MIT",
+  "autoload": {
+    "psr-0": {
+      "Lbaey": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Laurent Baey",
+      "email": "laurent.baey@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {},
+  "scripts": {
+    "post-package-install": "Lbaey\\ChromeDriverInstall::postPackageInstall"
+  }
+}

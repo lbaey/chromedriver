@@ -5,3 +5,5 @@ This is the composer dependency you want if you happen to do some Behat testing 
 Use it like a regular composer dependency, although it's a composer plugin.
 
     composer require lbaey/chromedriver
+    
+Feel free to contribute, PR's are read and welcome

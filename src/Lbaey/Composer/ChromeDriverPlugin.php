@@ -109,7 +109,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
         /** @var Config $config */
         $config = $this->composer->getConfig();
-        $extra = $config->get('extra');
+        $extra = $this->composer->getPackage()->getExtra();
         $version = $extra['chromedriver_version'];
         $this->io->write(sprintf(
             "Downloading Chromedriver version %s for %s",

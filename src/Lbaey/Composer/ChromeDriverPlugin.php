@@ -119,6 +119,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
             }
         }
         if ($extra) {
+            var_dump($extra);
             $version = $extra['chromedriver_version'];
         } else {
             $version = '2.28';

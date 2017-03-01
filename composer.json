@@ -22,13 +22,12 @@
     }
   ],
   "minimum-stability": "dev",
-  "require": {},
-  "scripts": {
-    "post-install-cmd": [
-      "Lbaey\\ChromeDriverInstall::postInstall"
-    ],
-    "post-update-cmd": [
-      "Lbaey\\ChromeDriverInstall::postInstall"
-    ]
+  "type": "composer-plugin",
+  "require": {
+    "php": ">=7.0",
+    "composer-plugin-api": "^1"
+  },
+  "extra": {
+    "class": "Lbaey\\Composer\\ChromeDriverPlugin"
   }
 }

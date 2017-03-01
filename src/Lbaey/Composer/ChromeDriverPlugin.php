@@ -1,17 +1,88 @@
 <?php
 
-namespace Lbaey;
+namespace Lbaey\Composer;
 
+/*
+ * This file is part of chromedriver composer plugin.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+use Composer\Composer;
 use Composer\Config;
+use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Factory;
+use Composer\IO\IOInterface;
 use Composer\Package\Package;
+use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
+use Composer\Script\ScriptEvents;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
 
-class ChromeDriverInstall
+/**
+ * @author Laurent Baey <laurent.baey@gmail.com>
+ */
+class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 {
-    public static function postInstall(Event $event)
+    /**
+     * @var Composer
+     */
+    protected $composer;
+
+    /**
+     * @var IOInterface
+     */
+    protected $io;
+
+    /**
+     * @return array
+     */
+    public static function getSubscribedEvents()
+    {
+        return array(
+            ScriptEvents::POST_INSTALL_CMD => 'onPostInstallCmd',
+            ScriptEvents::POST_UPDATE_CMD => 'onPostUpdateCmd',
+        );
+
+    }
+
+    /**
+     * @param Composer $composer
+     * @param IOInterface $io
+     */
+    public function activate(Composer $composer, IOInterface $io)
+    {
+        $this->composer = $composer;
+        $this->io = $io;
+    }
+
+    /**
+     * Handle post install command events.
+     *
+     * @param Event $event The event to handle.
+     *
+     */
+    public function onPostInstallCmd(Event $event)
+    {
+        $this->installDriver($event);
+    }
+
+    /**
+     * Handle post update command events.
+     *
+     * @param Event $event The event to handle.
+     *
+     */
+    public function onPostUpdateCmd(Event $event)
+    {
+        $this->installDriver($event);
+    }
+
+    /**
+     * @param Event $event
+     */
+    protected function installDriver(Event $event)
     {
         if (stripos(PHP_OS, 'win') === 0) {
             $platform = 'Windows';
@@ -37,11 +108,11 @@ class ChromeDriverInstall
         }
 
         /** @var Config $config */
-        $config = $event->getComposer()->getConfig();
+        $config = $this->composer->getConfig();
         /** @var Package $installedPackage */
-        $installedPackage = $event->getComposer()->getPackage();
+        $installedPackage = $this->composer->getPackage();
         $version = preg_replace('@.0.0$@', '', $installedPackage->getVersion());
-        $event->getIO()->write(sprintf(
+        $this->io->write(sprintf(
             "Downloading Chromedriver version %s for %s",
             $version,
             $platform
@@ -51,7 +122,7 @@ class ChromeDriverInstall
         $event->getIO()->write($chromeDriverOriginUrl . $chromeDriverRemoteFile);
 
         /** @var RemoteFilesystem $remoteFileSystem */
-        $remoteFileSystem = Factory::createRemoteFilesystem($event->getIO(), $config);
+        $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $config);
 
         $fs = new Filesystem();
         $fs->ensureDirectoryExists($config->get('bin-dir'));

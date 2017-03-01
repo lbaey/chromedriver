@@ -44,7 +44,6 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
             ScriptEvents::POST_INSTALL_CMD => 'onPostInstallCmd',
             ScriptEvents::POST_UPDATE_CMD => 'onPostUpdateCmd',
         );
-
     }
 
     /**
@@ -109,7 +108,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
         /** @var Config $config */
         $config = $this->composer->getConfig();
-        $extra = $this->composer->getPackage()->getExtra();
+        $extra = $event->getComposer()->getPackage()->getExtra();
         $version = $extra['chromedriver_version'];
         $this->io->write(sprintf(
             "Downloading Chromedriver version %s for %s",

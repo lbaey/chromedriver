@@ -13,8 +13,10 @@ use Composer\Config;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Factory;
 use Composer\IO\IOInterface;
+use Composer\Package\CompletePackage;
 use Composer\Package\Package;
 use Composer\Plugin\PluginInterface;
+use Composer\Plugin\PluginManager;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Util\Filesystem;
@@ -108,8 +110,19 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
         /** @var Config $config */
         $config = $this->composer->getConfig();
-        $extra = $event->getComposer()->getPackage()->getExtra();
-        $version = $extra['chromedriver_version'];
+
+        $extra = null;
+        foreach($event->getComposer()->getRepositoryManager()->getLocalRepository()->findPackages('lbaey/chromedriver') as $package){
+            if ($package instanceof CompletePackage){
+                $extra = $package->getExtra();
+                break;
+            }
+        }
+        if ($extra) {
+            $version = $extra['chromedriver_version'];
+        } else {
+            $version = '2.28';
+        }
         $this->io->write(sprintf(
             "Downloading Chromedriver version %s for %s",
             $version,

@@ -5,7 +5,11 @@
     "Chromedriver",
     "Browser Testing",
     "Selenium",
-    "Behat"
+    "Behat",
+    "OSX",
+    "Mac",
+    "Linux",
+    "Windows"
   ],
   "version": "1.0",
   "homepage": "https://github.com/lbaey",

@@ -1,6 +1,8 @@
 # Chrome Driver packaged in Composer
 
 This is the composer dependency you want if you happen to do some Behat testing with Selenium.
+It will download the adequat chromedriver version for your dev platform, whether it's Linux (32bits or 64bits),
+OSX or Windows.
 
 Use it like a regular composer dependency, although it's a composer plugin.
 

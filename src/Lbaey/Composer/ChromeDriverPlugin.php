@@ -120,7 +120,6 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
             $this->getPlatformNames()[$this->platform]
         ));
         $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
-        $chromeDriverRemoteFilePath = $version . "/" . $this->getRemoteFileName();
 
         /** @var RemoteFilesystem $remoteFileSystem */
         $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $config);
@@ -129,7 +128,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $fs->ensureDirectoryExists($config->get('bin-dir'));
 
         $chromeDriverArchiveFileName = $config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
-        $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $chromeDriverRemoteFilePath, $chromeDriverArchiveFileName);
+        $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $version . $this->getRemoteFileName(), $chromeDriverArchiveFileName);
 
         $archive = new \ZipArchive();
         $archive->open($chromeDriverArchiveFileName);

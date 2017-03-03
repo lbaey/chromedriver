@@ -163,7 +163,8 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
             return;
         }
-        $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
+
+        $this->platform = $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
     }
 
     /**

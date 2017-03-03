@@ -29,6 +29,7 @@
   "type": "composer-plugin",
   "require": {
     "php": ">=7.0",
+    "ext-zip": "*",
     "composer-plugin-api": "^1"
   },
   "extra": {

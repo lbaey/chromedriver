@@ -27,6 +27,11 @@ use Composer\Util\RemoteFilesystem;
  */
 class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 {
+    const LINUX32 = 'linux32';
+    const LINUX64 = 'linux64';
+    const MAC64 = 'mac64';
+    const WIN32 = 'win32';
+
     /**
      * @var Composer
      */
@@ -36,6 +41,11 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
      * @var IOInterface
      */
     protected $io;
+
+    /**
+     * @var string
+     */
+    protected $platform;
 
     /**
      * @return array
@@ -85,35 +95,12 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
      */
     protected function installDriver(Event $event)
     {
-        if (stripos(PHP_OS, 'win') === 0) {
-            $platform = 'Windows';
-            $chromeDriverExecutableFileName = 'chromedriver.exe';
-            $chromeDriverFileVersion = "win32";
-        } elseif (stripos(PHP_OS, 'darwin') === 0) {
-            $platform = 'Mac OS X';
-            $chromeDriverExecutableFileName = 'chromedriver';
-            $chromeDriverFileVersion = "mac64";
-        } elseif (stripos(PHP_OS, 'linux') === 0) {
-            $platform = 'Linux';
-            $chromeDriverExecutableFileName = 'chromedriver';
-            if (PHP_INT_SIZE === 8) {
-                $chromeDriverFileVersion = "linux64";
-            } else {
-                $chromeDriverFileVersion = "linux32";
-            }
-
-        } else {
-            $event->getIO()->writeError('Could not guess your platform, download chromedriver manually.');
-
-            return;
-        }
-
         /** @var Config $config */
         $config = $this->composer->getConfig();
 
         $extra = null;
-        foreach($event->getComposer()->getRepositoryManager()->getLocalRepository()->findPackages('lbaey/chromedriver') as $package){
-            if ($package instanceof CompletePackage){
+        foreach ($event->getComposer()->getRepositoryManager()->getLocalRepository()->findPackages('lbaey/chromedriver') as $package) {
+            if ($package instanceof CompletePackage) {
                 $extra = $package->getExtra();
                 break;
             }
@@ -126,10 +113,10 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $this->io->write(sprintf(
             "Downloading Chromedriver version %s for %s",
             $version,
-            $platform
+            $this->getPlatformNames()[$this->platform]
         ));
         $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
-        $chromeDriverRemoteFile = $version . "/chromedriver_" . $chromeDriverFileVersion . ".zip";
+        $chromeDriverRemoteFilePath = $version . "/" . $this->getRemoteFileName();
 
         /** @var RemoteFilesystem $remoteFileSystem */
         $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $config);
@@ -137,17 +124,92 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $fs = new Filesystem();
         $fs->ensureDirectoryExists($config->get('bin-dir'));
 
-        $chromeDriverArchiveFileName = $config->get('bin-dir') . DIRECTORY_SEPARATOR . 'chromedriver_' . $chromeDriverFileVersion . ".zip";
-        $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $chromeDriverRemoteFile, $chromeDriverArchiveFileName);
+        $chromeDriverArchiveFileName = $config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
+        $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $chromeDriverRemoteFilePath, $chromeDriverArchiveFileName);
 
         $archive = new \ZipArchive();
         $archive->open($chromeDriverArchiveFileName);
         $archive->extractTo($config->get('bin-dir'));
 
-        if ($platform !== 'Windows') {
-            chmod($config->get('bin-dir') . DIRECTORY_SEPARATOR . $chromeDriverExecutableFileName, 0755);
+        if ($this->platform !== self::WIN32) {
+            chmod($config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getExecutableFileName(), 0755);
         }
 
         $fs->unlink($chromeDriverArchiveFileName);
+    }
+
+    /**
+     *
+     */
+    protected function getPlatform()
+    {
+        if (stripos(PHP_OS, 'win') === 0) {
+            $this->platform = self::WIN32;
+        } elseif (stripos(PHP_OS, 'darwin') === 0) {
+            $this->platform = self::MAC64;
+        } elseif (stripos(PHP_OS, 'linux') === 0) {
+            if (PHP_INT_SIZE === 8) {
+                $this->platform = self::LINUX64;
+            } else {
+                $this->platform = self::LINUX32;
+            }
+
+        } else {
+            $this->io->writeError('Could not guess your platform, download chromedriver manually.');
+
+            return;
+        }
+        $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
+    }
+
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    protected function getRemoteFileName()
+    {
+        switch ($this->platform) {
+            case self::LINUX32:
+                return "/chromedriver_linux32.zip";
+            case self::LINUX64:
+                return "/chromedriver_linux64.zip";
+            case self::MAC64:
+                return "/chromedriver_mac64.zip";
+            case self::WIN32:
+                return "/chromedriver_win32.zip";
+            default:
+                throw new \Exception('Platform is not set.');
+        }
+    }
+
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    protected function getExecutableFileName()
+    {
+        switch ($this->platform) {
+            case self::LINUX32:
+            case self::LINUX64:
+            case self::MAC64:
+                return 'chromedriver';
+            case self::WIN32:
+                return 'chromedriver.exe';
+            default:
+                throw new \Exception('Platform is not set.');
+        }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getPlatformNames()
+    {
+        return [
+            self::LINUX32 => 'Linux 32Bits',
+            self::LINUX64 => 'Linux 6Bits',
+            self::MAC64 => 'Mac OS X',
+            self::WIN32 => 'Windows'
+        ];
     }
 }

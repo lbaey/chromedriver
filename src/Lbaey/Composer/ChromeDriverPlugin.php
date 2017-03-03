@@ -105,11 +105,15 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
                 break;
             }
         }
+
         if ($extra) {
             $version = $extra['chromedriver_version'];
         } else {
             $version = '2.27';
         }
+
+        $this->guessPlatform();
+
         $this->io->write(sprintf(
             "Downloading Chromedriver version %s for %s",
             $version,
@@ -141,7 +145,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     /**
      *
      */
-    protected function getPlatform()
+    protected function guessPlatform()
     {
         if (stripos(PHP_OS, 'win') === 0) {
             $this->platform = self::WIN32;

@@ -211,7 +211,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     {
         return [
             self::LINUX32 => 'Linux 32Bits',
-            self::LINUX64 => 'Linux 6Bits',
+            self::LINUX64 => 'Linux 64Bits',
             self::MAC64 => 'Mac OS X',
             self::WIN32 => 'Windows'
         ];

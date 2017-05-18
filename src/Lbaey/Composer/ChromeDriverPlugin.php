@@ -163,7 +163,10 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
             return;
         }
 
-        $this->platform = $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
+        $extra = $this->composer->getPackage()->getExtra();
+        if (empty($extra['lbaey/chromedriver']['bypass-select'])) {
+          $this->platform = $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
+        }
     }
 
     /**

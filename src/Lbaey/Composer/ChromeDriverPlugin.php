@@ -15,13 +15,12 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Factory;
 use Composer\IO\IOInterface;
 use Composer\Package\CompletePackage;
-use Composer\Package\Package;
 use Composer\Plugin\PluginInterface;
-use Composer\Plugin\PluginManager;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
+use Composer\Util\Silencer;
 
 /**
  * @author Laurent Baey <laurent.baey@gmail.com>
@@ -80,9 +79,10 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $this->config = $this->composer->getConfig();
         $this->cache = new Cache(
             $this->io,
-            implode('/', [
+            implode(DIRECTORY_SEPARATOR, [
                 $this->config->get('cache-dir'),
-                'lbaey/chromedriver',
+                'files',
+                'lbaey-chromedriver',
                 'downloaded-bin'
             ])
         );
@@ -134,13 +134,12 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $this->guessPlatform();
 
         $fs = new Filesystem();
+        $fs->ensureDirectoryExists($this->cache->getRoot() . $version);
         $fs->ensureDirectoryExists($this->config->get('bin-dir'));
-        $chromeDriverArchiveFileName = $this->config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
 
-        $this->io->write($this->getRemoteFileName());
-        $this->io->write($chromeDriverArchiveFileName);
+        $chromeDriverArchiveCacheFileName = $this->cache->getRoot() . $version . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
 
-        if (!$this->cache || !$this->cache->copyTo($this->getRemoteFileName(), $chromeDriverArchiveFileName)) {
+        if (!$this->cache->isEnabled() || !$this->cache->copyTo($this->getRemoteFileName(), $chromeDriverArchiveCacheFileName)) {
             $this->io->write(sprintf(
                 "Downloading Chromedriver version %s for %s",
                 $version,
@@ -150,7 +149,12 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
             /** @var RemoteFilesystem $remoteFileSystem */
             $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $this->config);
-            $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $version . $this->getRemoteFileName(), $this->cache->getRoot() . DIRECTORY_SEPARATOR . $this->getRemoteFileName());
+            $remoteFileSystem->copy(
+                $chromeDriverOriginUrl,
+                $chromeDriverOriginUrl . '/' . $version . '/' . $this->getRemoteFileName(),
+                $chromeDriverArchiveCacheFileName
+            );
+            $this->cache->copyFrom($this->getRemoteFileName(), $chromeDriverArchiveCacheFileName);
         } else {
             $this->io->write(sprintf(
                 'Using cached version of %s',
@@ -159,14 +163,13 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         $archive = new \ZipArchive();
-        $archive->open($chromeDriverArchiveFileName);
+        $archive->open($chromeDriverArchiveCacheFileName);
         $archive->extractTo($this->config->get('bin-dir'));
 
         if ($this->platform !== self::WIN32) {
             chmod($this->config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getExecutableFileName(), 0755);
         }
 
-        $fs->unlink($chromeDriverArchiveFileName);
     }
 
     /**
@@ -195,7 +198,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $extra = $this->composer->getPackage()->getExtra();
 
         if (empty($extra['lbaey/chromedriver']['bypass-select'])) {
-          $this->platform = $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
+            $this->platform = $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
         }
     }
 
@@ -207,13 +210,13 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     {
         switch ($this->platform) {
             case self::LINUX32:
-                return "/chromedriver_linux32.zip";
+                return "chromedriver_linux32.zip";
             case self::LINUX64:
-                return "/chromedriver_linux64.zip";
+                return "chromedriver_linux64.zip";
             case self::MAC64:
-                return "/chromedriver_mac64.zip";
+                return "chromedriver_mac64.zip";
             case self::WIN32:
-                return "/chromedriver_win32.zip";
+                return "chromedriver_win32.zip";
             default:
                 throw new \Exception('Platform is not set.');
         }

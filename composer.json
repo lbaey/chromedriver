@@ -34,6 +34,6 @@
   },
   "extra": {
     "class": "Lbaey\\Composer\\ChromeDriverPlugin",
-    "chromedriver_version" : "2.27"
+    "chromedriver_version" : "2.30"
   }
 }

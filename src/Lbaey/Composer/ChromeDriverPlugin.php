@@ -117,10 +117,12 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     {
         $extra = null;
         foreach ($event->getComposer()->getRepositoryManager()->getLocalRepository()->findPackages('lbaey/chromedriver') as $package) {
+
             if ($package instanceof CompletePackage) {
                 $extra = $package->getExtra();
                 break;
             }
+
         }
 
         if ($extra) {
@@ -131,24 +133,29 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
         $this->guessPlatform();
 
-        $this->io->write(sprintf(
-            "Downloading Chromedriver version %s for %s",
-            $version,
-            $this->getPlatformNames()[$this->platform]
-        ));
-        $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
-
-        /** @var RemoteFilesystem $remoteFileSystem */
-        $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $this->config);
-
         $fs = new Filesystem();
         $fs->ensureDirectoryExists($this->config->get('bin-dir'));
         $chromeDriverArchiveFileName = $this->config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
 
+        $this->io->write($this->getRemoteFileName());
+        $this->io->write($chromeDriverArchiveFileName);
+
         if (!$this->cache || !$this->cache->copyTo($this->getRemoteFileName(), $chromeDriverArchiveFileName)) {
+            $this->io->write(sprintf(
+                "Downloading Chromedriver version %s for %s",
+                $version,
+                $this->getPlatformNames()[$this->platform]
+            ));
+            $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
+
+            /** @var RemoteFilesystem $remoteFileSystem */
+            $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $this->config);
             $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $version . $this->getRemoteFileName(), $this->cache->getRoot() . DIRECTORY_SEPARATOR . $this->getRemoteFileName());
         } else {
-            $this->io->write('Using cached version of ' . $this->getRemoteFileName());
+            $this->io->write(sprintf(
+                'Using cached version of %s',
+                $this->getRemoteFileName()
+            ));
         }
 
         $archive = new \ZipArchive();
@@ -172,6 +179,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         } elseif (stripos(PHP_OS, 'darwin') === 0) {
             $this->platform = self::MAC64;
         } elseif (stripos(PHP_OS, 'linux') === 0) {
+
             if (PHP_INT_SIZE === 8) {
                 $this->platform = self::LINUX64;
             } else {

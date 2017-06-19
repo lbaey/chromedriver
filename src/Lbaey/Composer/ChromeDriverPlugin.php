@@ -8,6 +8,7 @@ namespace Lbaey\Composer;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+use Composer\Cache;
 use Composer\Composer;
 use Composer\Config;
 use Composer\EventDispatcher\EventSubscriberInterface;
@@ -48,6 +49,16 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     protected $platform;
 
     /**
+     * @var Cache
+     */
+    protected $cache;
+
+    /**
+     * @var Config\
+     */
+    protected $config;
+
+    /**
      * @return array
      */
     public static function getSubscribedEvents()
@@ -66,6 +77,15 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     {
         $this->composer = $composer;
         $this->io = $io;
+        $this->config = $this->composer->getConfig();
+        $this->cache = new Cache(
+            $this->io,
+            implode('/', [
+                $this->config->get('cache-dir'),
+                'lbaey/chromedriver',
+                'downloaded-bin'
+            ])
+        );
     }
 
     /**
@@ -95,9 +115,6 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
      */
     protected function installDriver(Event $event)
     {
-        /** @var Config $config */
-        $config = $this->composer->getConfig();
-
         $extra = null;
         foreach ($event->getComposer()->getRepositoryManager()->getLocalRepository()->findPackages('lbaey/chromedriver') as $package) {
             if ($package instanceof CompletePackage) {
@@ -109,7 +126,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         if ($extra) {
             $version = $extra['chromedriver_version'];
         } else {
-            $version = '2.27';
+            $version = '2.30';
         }
 
         $this->guessPlatform();
@@ -122,20 +139,24 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
 
         /** @var RemoteFilesystem $remoteFileSystem */
-        $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $config);
+        $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $this->config);
 
         $fs = new Filesystem();
-        $fs->ensureDirectoryExists($config->get('bin-dir'));
+        $fs->ensureDirectoryExists($this->config->get('bin-dir'));
+        $chromeDriverArchiveFileName = $this->config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
 
-        $chromeDriverArchiveFileName = $config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
-        $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $version . $this->getRemoteFileName(), $chromeDriverArchiveFileName);
+        if (!$this->cache || !$this->cache->copyTo($this->getRemoteFileName(), $chromeDriverArchiveFileName)) {
+            $remoteFileSystem->copy($chromeDriverOriginUrl, $chromeDriverOriginUrl . '/' . $version . $this->getRemoteFileName(), $this->cache->getRoot() . DIRECTORY_SEPARATOR . $this->getRemoteFileName());
+        } else {
+            $this->io->write('Using cached version of ' . $this->getRemoteFileName());
+        }
 
         $archive = new \ZipArchive();
         $archive->open($chromeDriverArchiveFileName);
-        $archive->extractTo($config->get('bin-dir'));
+        $archive->extractTo($this->config->get('bin-dir'));
 
         if ($this->platform !== self::WIN32) {
-            chmod($config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getExecutableFileName(), 0755);
+            chmod($this->config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getExecutableFileName(), 0755);
         }
 
         $fs->unlink($chromeDriverArchiveFileName);
@@ -164,6 +185,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         $extra = $this->composer->getPackage()->getExtra();
+
         if (empty($extra['lbaey/chromedriver']['bypass-select'])) {
           $this->platform = $this->io->select('Please select the platform :', $this->getPlatformNames(), $this->platform);
         }

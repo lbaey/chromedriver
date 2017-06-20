@@ -20,7 +20,6 @@ use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
-use Composer\Util\Silencer;
 
 /**
  * @author Laurent Baey <laurent.baey@gmail.com>
@@ -116,19 +115,12 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     protected function installDriver(Event $event)
     {
         $extra = null;
-        foreach ($event->getComposer()->getRepositoryManager()->getLocalRepository()->findPackages('lbaey/chromedriver') as $package) {
+        $extra = $this->composer->getPackage()->getExtra();
 
-            if ($package instanceof CompletePackage) {
-                $extra = $package->getExtra();
-                break;
-            }
-
-        }
-
-        if ($extra) {
-            $version = $extra['chromedriver_version'];
-        } else {
+        if (empty($extra['lbaey/chromedriver']['chromedriver_version'])) {
             $version = '2.30';
+        } else {
+            $version = $extra['lbaey/chromedriver']['chromedriver_version'];
         }
 
         $this->guessPlatform();

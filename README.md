@@ -13,3 +13,23 @@ Feel free to contribute, PR's are read and welcome
 If you use se/selenium-server-standalone, run it with
 
     ./bin/selenium-server-standalone -Dwebdriver.chrome.driver=$PWD/bin/chromedriver
+
+--- 
+Configuring Extra
+---
+
+If your dev platform happens to be coherent with your test platform, you can by-pass platform selection with :
+
+    "extra": {
+        "lbaey/chromedriver": {
+            "bypass-select": true
+        }
+    },
+
+If you want a specific version of chromedriver, use :
+
+    "extra": {
+        "lbaey/chromedriver": {
+            "chromedriver-version": 2.30
+        }
+    },

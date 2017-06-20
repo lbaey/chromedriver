@@ -6,7 +6,7 @@ OSX or Windows.
 
 Use it like a regular composer dependency, although it's a composer plugin.
 
-    composer require lbaey/chromedriver
+    composer require lbaey/chromedriver 1.0
     
 Feel free to contribute, PR's are read and welcome
 

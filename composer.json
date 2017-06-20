@@ -33,7 +33,6 @@
     "composer-plugin-api": "^1"
   },
   "extra": {
-    "class": "Lbaey\\Composer\\ChromeDriverPlugin",
-    "chromedriver_version" : "2.27"
+    "class": "Lbaey\\Composer\\ChromeDriverPlugin"
   }
 }

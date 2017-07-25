@@ -20,6 +20,7 @@ use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
+use Composer\Util\ProcessExecutor;
 
 /**
  * @author Laurent Baey <laurent.baey@gmail.com>
@@ -124,6 +125,21 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         }
 
         $this->guessPlatform();
+
+        $chromeDriverPath = $this->config->get('bin-dir') . DIRECTORY_SEPARATOR . $this->getExecutableFileName();
+        $output = '';
+
+        if (file_exists($chromeDriverPath) && is_executable($chromeDriverPath)) {
+            $processExecutor = new ProcessExecutor($this->io);
+            $processExecutor::setTimeout(10);
+            $processExecutor->execute($chromeDriverPath . ' --version', $output);
+
+            // right version? => nothing to do
+            if (strpos($output, 'ChromeDriver ' . $version) === 0) {
+                $this->io->write(sprintf('The right version %s of ChromeDriver is already installed', $version));
+                return;
+            }
+        }
 
         $fs = new Filesystem();
         $fs->ensureDirectoryExists($this->cache->getRoot() . $version);

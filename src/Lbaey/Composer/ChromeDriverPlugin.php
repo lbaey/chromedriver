@@ -131,9 +131,9 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
         $chromeDriverArchiveCacheFileName = $this->cache->getRoot() . $version . DIRECTORY_SEPARATOR . $this->getRemoteFileName();
 
-        if (!$this->cache->isEnabled() || !$this->cache->copyTo($this->getRemoteFileName(), $chromeDriverArchiveCacheFileName)) {
+        if (!$this->cache->isEnabled() || !file_exists($chromeDriverArchiveCacheFileName)) {
             $this->io->write(sprintf(
-                "Downloading Chromedriver version %s for %s",
+                "Downloading ChromeDriver version %s for %s",
                 $version,
                 $this->getPlatformNames()[$this->platform]
             ));
@@ -146,7 +146,6 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
                 $chromeDriverOriginUrl . '/' . $version . '/' . $this->getRemoteFileName(),
                 $chromeDriverArchiveCacheFileName
             );
-            $this->cache->copyFrom($this->getRemoteFileName(), $chromeDriverArchiveCacheFileName);
         } else {
             $this->io->write(sprintf(
                 'Using cached version of %s',

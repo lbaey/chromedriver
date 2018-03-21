@@ -119,7 +119,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $extra = $this->composer->getPackage()->getExtra();
 
         if (empty($extra['lbaey/chromedriver']['chromedriver-version'])) {
-            $version = '2.33';
+            $version = '2.37';
         } else {
             $version = $extra['lbaey/chromedriver']['chromedriver-version'];
         }

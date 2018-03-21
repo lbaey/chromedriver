@@ -30,6 +30,6 @@ If you want a specific version of chromedriver, use :
 
     "extra": {
         "lbaey/chromedriver": {
-            "chromedriver-version": "2.33"
+            "chromedriver_version": "2.33"
         }
     },

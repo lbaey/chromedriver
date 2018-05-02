@@ -118,8 +118,16 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
         $extra = null;
         $extra = $this->composer->getPackage()->getExtra();
 
+        $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
+        
+        /** @var RemoteFilesystem $remoteFileSystem */
+        $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $this->config);
+        
         if (empty($extra['lbaey/chromedriver']['chromedriver-version'])) {
-            $version = '2.33';
+            $version = $remoteFileSystem->getContents(
+            	$chromeDriverOriginUrl,
+            	$chromeDriverOriginUrl . '/LATEST_RELEASE' 
+            );
         } else {
             $version = $extra['lbaey/chromedriver']['chromedriver-version'];
         }
@@ -153,10 +161,9 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
                 $version,
                 $this->getPlatformNames()[$this->platform]
             ));
-            $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
+            
 
-            /** @var RemoteFilesystem $remoteFileSystem */
-            $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $this->config);
+            
             $remoteFileSystem->copy(
                 $chromeDriverOriginUrl,
                 $chromeDriverOriginUrl . '/' . $version . '/' . $this->getRemoteFileName(),

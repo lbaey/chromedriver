@@ -26,7 +26,7 @@ If your dev platform happens to be coherent with your test platform, you can by-
         }
     },
 
-If you want a specific version of chromedriver, use :
+By default the latest release is installed. If you want a specific version of chromedriver, use :
 
     "extra": {
         "lbaey/chromedriver": {

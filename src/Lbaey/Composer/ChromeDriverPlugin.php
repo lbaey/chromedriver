@@ -139,8 +139,15 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
         if (file_exists($chromeDriverPath) && is_executable($chromeDriverPath)) {
             $processExecutor = new ProcessExecutor($this->io);
+
+            // Temporarily reduce (?) the timeout to 10 seconds.
+            $originalTimeout = $processExecutor::getTimeout();
             $processExecutor::setTimeout(10);
+
             $processExecutor->execute($chromeDriverPath . ' --version', $output);
+
+            // Restore the timeout.
+            $processExecutor::setTimeout($originalTimeout);
 
             // right version? => nothing to do
             if (strpos($output, 'ChromeDriver ' . $version) === 0) {

@@ -53,7 +53,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
     protected $cache;
 
     /**
-     * @var Config\
+     * @var Config
      */
     protected $config;
 
@@ -120,14 +120,10 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
 
         $chromeDriverOriginUrl = "https://chromedriver.storage.googleapis.com";
         
-        /** @var RemoteFilesystem $remoteFileSystem */
-        $remoteFileSystem = Factory::createRemoteFilesystem($this->io, $this->config);
-        
+        $downloader = new Downloader($this->io, $this->config);
+
         if (empty($extra['lbaey/chromedriver']['chromedriver-version'])) {
-            $version = $remoteFileSystem->getContents(
-            	$chromeDriverOriginUrl,
-            	$chromeDriverOriginUrl . '/LATEST_RELEASE' 
-            );
+            $version = $downloader->get($chromeDriverOriginUrl . '/LATEST_RELEASE' );
         } else {
             $version = $extra['lbaey/chromedriver']['chromedriver-version'];
         }
@@ -171,8 +167,7 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
             
 
             
-            $remoteFileSystem->copy(
-                $chromeDriverOriginUrl,
+            $downloader->copy(
                 $chromeDriverOriginUrl . '/' . $version . '/' . $this->getRemoteFileName(),
                 $chromeDriverArchiveCacheFileName
             );
@@ -272,5 +267,12 @@ class ChromeDriverPlugin implements PluginInterface, EventSubscriberInterface
             self::MAC64 => 'Mac OS X',
             self::WIN32 => 'Windows'
         ];
+    }
+
+    public function deactivate(Composer $composer, IOInterface $io) {
+
+    }
+    public function uninstall(Composer $composer, IOInterface $io) {
+        
     }
 }

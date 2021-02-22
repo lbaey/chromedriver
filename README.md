@@ -30,6 +30,6 @@ By default the latest release is installed. If you want a specific version of ch
 
     "extra": {
         "lbaey/chromedriver": {
-            "chromedriver-version": "2.33"
+            "chromedriver_version": "2.33"
         }
     },
